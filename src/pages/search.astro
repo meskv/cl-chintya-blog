@@ -1,0 +1,184 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Search" description="Search Chintya by title, description, tag, category or author.">
+  <section class="container search-head">
+    <h1>Search</h1>
+    <p class="search-head__intro">
+      Search across every published essay — titles, descriptions, tags,
+      categories and authors. Everything happens in your browser; nothing is
+      sent anywhere.
+    </p>
+    <div class="search-box">
+      <input
+        id="search-input"
+        type="search"
+        class="sans"
+        placeholder="Try “institutions”, “attention”, or an author's name"
+        aria-label="Search essays"
+        autocomplete="off"
+      />
+    </div>
+  </section>
+
+  <section class="container">
+    <p id="search-status" class="sans search-status" aria-live="polite"></p>
+    <ul id="search-results" class="search-results"></ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .search-head {
+    padding-block: var(--space-5) var(--space-3);
+  }
+
+  .search-head h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 0.5em;
+  }
+
+  .search-head__intro {
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin-bottom: var(--space-3);
+  }
+
+  .search-box input {
+    width: 100%;
+    max-width: 560px;
+    font-size: 1.15rem;
+    padding: 0.8em 1em;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-raised);
+    color: var(--ink);
+  }
+
+  .search-box input:focus-visible {
+    border-color: var(--accent);
+  }
+
+  .search-status {
+    color: var(--ink-faint);
+    font-size: 0.9rem;
+    min-height: 1.4em;
+    padding-block: var(--space-2) 0;
+  }
+
+  .search-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .search-results li {
+    border-bottom: 1px solid var(--rule);
+    padding-block: var(--space-3);
+  }
+
+  .search-results a {
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .search-results h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.3em;
+  }
+
+  .search-results a:hover h3 {
+    color: var(--accent-strong);
+  }
+
+  .search-results p {
+    color: var(--ink-soft);
+    margin: 0 0 0.4em;
+    max-width: 62ch;
+  }
+
+  .search-results .result-meta {
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+  }
+</style>
+
+<script>
+  type SearchItem = {
+    title: string;
+    description: string;
+    url: string;
+    category: string;
+    tags: string[];
+    author: string;
+    language: 'en' | 'hi';
+    readingTime: number;
+  };
+
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const results = document.getElementById('search-results');
+  const status = document.getElementById('search-status');
+
+  let items: SearchItem[] = [];
+
+  function render(list: SearchItem[], query: string) {
+    if (!results || !status) return;
+    results.innerHTML = '';
+
+    if (query.trim() === '') {
+      status.textContent = `${items.length} essays indexed. Start typing to search.`;
+      return;
+    }
+
+    status.textContent = `${list.length} result${list.length === 1 ? '' : 's'} for “${query}”`;
+
+    for (const item of list) {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <a href="${item.url}">
+          <h3${item.language === 'hi' ? ' class="lang-hi"' : ''}>${item.title}</h3>
+          <p>${item.description}</p>
+          <p class="result-meta">${item.author} · ${item.category} · ${item.readingTime} min read</p>
+        </a>
+      `;
+      results.appendChild(li);
+    }
+  }
+
+  function search(query: string) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      render([], query);
+      return;
+    }
+    const matches = items.filter((item) => {
+      const haystack = [
+        item.title,
+        item.description,
+        item.category,
+        item.author,
+        ...item.tags,
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+    render(matches, query);
+  }
+
+  async function init() {
+    try {
+      const res = await fetch('/search-index.json');
+      items = await res.json();
+      if (status) status.textContent = `${items.length} essays indexed. Start typing to search.`;
+    } catch (err) {
+      if (status) status.textContent = 'Search index could not be loaded.';
+    }
+  }
+
+  input?.addEventListener('input', (e) => {
+    search((e.target as HTMLInputElement).value);
+  });
+
+  init();
+</script>

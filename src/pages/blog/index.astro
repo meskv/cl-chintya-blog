@@ -1,0 +1,55 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleRow from '../../components/ArticleRow.astro';
+import { getPublicArticles } from '../../lib/utils';
+
+const all = await getCollection('articles');
+const articles = getPublicArticles(all);
+---
+<BaseLayout title="Journal" description="Every published essay on Chintya, in one place.">
+  <section class="container archive-head">
+    <h1>The Journal</h1>
+    <p class="archive-head__intro">
+      Every essay Chintya has published, newest first. Filter by
+      <a href="/blog" class="text-link-inline">topic</a> or
+      <a href="/search" class="text-link-inline">search</a> if you're looking
+      for something specific.
+    </p>
+  </section>
+
+  <hr class="rule container" />
+
+  <section class="container archive-list">
+    {articles.map((article) => (
+      <ArticleRow article={article} />
+    ))}
+  </section>
+</BaseLayout>
+
+<style>
+  .archive-head {
+    padding-block: var(--space-5) var(--space-3);
+  }
+
+  .archive-head h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 0.5em;
+  }
+
+  .archive-head__intro {
+    color: var(--ink-soft);
+    max-width: 60ch;
+    font-size: 1.05rem;
+  }
+
+  .text-link-inline {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+  }
+
+  .archive-list {
+    padding-block: var(--space-2) var(--space-5);
+  }
+</style>

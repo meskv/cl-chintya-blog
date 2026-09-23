@@ -1,0 +1,37 @@
+---
+import { getEntry } from 'astro:content';
+import { formatDate } from '../lib/utils';
+
+interface Props {
+  authorSlug: string;
+  date: Date;
+  language: 'en' | 'hi';
+  readingTime: number;
+  linkAuthor?: boolean;
+}
+
+const { authorSlug, date, language, readingTime, linkAuthor = true } = Astro.props;
+const author = await getEntry('authors', authorSlug);
+const name = author?.data.name ?? authorSlug;
+---
+<p class="meta">
+  {linkAuthor ? (
+    <a href={`/author/${authorSlug}/`} class="author-link">{name}</a>
+  ) : (
+    <span>{name}</span>
+  )}
+  <span class="dot">·</span>
+  <time datetime={date.toISOString()}>{formatDate(date, language)}</time>
+  <span class="dot">·</span>
+  <span>{readingTime} min read</span>
+</p>
+
+<style>
+  .author-link {
+    text-decoration: none;
+    color: var(--ink-soft);
+  }
+  .author-link:hover {
+    color: var(--accent-strong);
+  }
+</style>

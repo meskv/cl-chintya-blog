@@ -1,0 +1,115 @@
+---
+import { Image } from 'astro:assets';
+import type { Article } from '../lib/utils';
+import { estimateReadingTime } from '../lib/utils';
+import AuthorByline from './AuthorByline.astro';
+
+interface Props {
+  article: Article;
+  showImage?: boolean;
+}
+
+const { article, showImage = true } = Astro.props;
+const readingTime = article.data.readingTimeOverride ?? estimateReadingTime(article.body ?? '', article.data.language);
+---
+<article class="row">
+  {showImage && article.data.coverImage && (
+    <a href={`/blog/${article.id}/`} class="row__image">
+      <Image src={article.data.coverImage} alt={article.data.coverImageAlt ?? ''} width={340} height={240} loading="lazy" />
+    </a>
+  )}
+  <div class="row__text">
+    <p class="meta">
+      <a class="category-link" href={`/category/${article.data.category.toLowerCase()}/`}>
+        {article.data.category}
+      </a>
+      {article.data.language === 'hi' && <span class="row__lang">हिंदी</span>}
+    </p>
+    <h3 class={article.data.language === 'hi' ? 'lang-hi' : ''}>
+      <a href={`/blog/${article.id}/`}>{article.data.title}</a>
+    </h3>
+    <p class="row__description">{article.data.description}</p>
+    <AuthorByline
+      authorSlug={article.data.author}
+      date={article.data.publishedDate}
+      language={article.data.language}
+      readingTime={readingTime}
+    />
+  </div>
+</article>
+
+<style>
+  .row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: var(--space-3);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .row:first-child {
+    border-top: 1px solid var(--rule);
+  }
+
+  .row:not(:has(.row__image)) {
+    grid-template-columns: 1fr;
+  }
+
+  .row__image {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--radius);
+    align-self: start;
+  }
+
+  .row__image :global(img) {
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    transition: transform 0.5s var(--ease);
+  }
+
+  .row__image:hover :global(img) {
+    transform: scale(1.03);
+  }
+
+  .category-link {
+    font-family: var(--font-sans);
+    text-decoration: none;
+    color: var(--accent-strong);
+  }
+
+  .row__lang {
+    font-family: var(--font-sans);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.1em 0.6em;
+  }
+
+  .row__text h3 {
+    font-size: 1.35rem;
+    margin: 0.35em 0 0.4em;
+  }
+
+  .row__text h3 a {
+    text-decoration: none;
+  }
+
+  .row__text h3 a:hover {
+    color: var(--accent-strong);
+  }
+
+  .row__description {
+    color: var(--ink-soft);
+    margin-bottom: 0.6em;
+    max-width: 62ch;
+  }
+
+  @media (max-width: 640px) {
+    .row {
+      grid-template-columns: 96px 1fr;
+    }
+    .row__text h3 {
+      font-size: 1.15rem;
+    }
+  }
+</style>

@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Page not found" noIndex={true}>
+  <section class="container not-found">
+    <p class="eyebrow sans">404</p>
+    <h1>This page didn't stay long enough to be indexed</h1>
+    <p class="not-found__text">
+      Whatever you were looking for isn't at this address. It may have been
+      renamed, or it never existed in the first place.
+    </p>
+    <a href="/" class="text-link">Back to the homepage</a>
+    <span class="not-found__sep"> · </span>
+    <a href="/blog" class="text-link">Browse the journal</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding-block: var(--space-6);
+    max-width: 60ch;
+  }
+  .eyebrow {
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    margin-bottom: 0.6em;
+  }
+  .not-found h1 {
+    font-size: clamp(1.8rem, 3.6vw, 2.4rem);
+    margin-bottom: 0.6em;
+  }
+  .not-found__text {
+    color: var(--ink-soft);
+    margin-bottom: var(--space-3);
+  }
+  .not-found__sep {
+    color: var(--ink-faint);
+  }
+</style>

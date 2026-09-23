@@ -1,0 +1,122 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleRow from '../../../components/ArticleRow.astro';
+import { articlesByAuthor } from '../../../lib/utils';
+
+export async function getStaticPaths() {
+  const authors = await getCollection('authors');
+  return authors
+    .filter((a) => a.data.active)
+    .map((author) => ({
+      params: { slug: author.id },
+      props: { author },
+    }));
+}
+
+const { author } = Astro.props;
+const allArticles = await getCollection('articles');
+const articles = articlesByAuthor(allArticles, author.id);
+
+const socialLinks = [
+  { label: 'Website', url: author.data.website },
+  { label: 'Twitter', url: author.data.social?.twitter },
+  { label: 'LinkedIn', url: author.data.social?.linkedin },
+  { label: 'Instagram', url: author.data.social?.instagram },
+].filter((l): l is { label: string; url: string } => Boolean(l.url));
+---
+<BaseLayout title={author.data.name} description={author.data.bio}>
+  <section class="container author-head">
+    {author.data.photo && (
+      <Image src={author.data.photo} alt={author.data.name} width={140} height={140} class="author-head__photo" />
+    )}
+    <div>
+      <p class="eyebrow sans">Author</p>
+      <h1>{author.data.name}</h1>
+      <p class="author-head__bio">{author.data.bio}</p>
+      {socialLinks.length > 0 && (
+        <ul class="author-head__links sans">
+          {socialLinks.map((link) => (
+            <li><a href={link.url} rel="me noopener" target="_blank">{link.label}</a></li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </section>
+
+  <hr class="rule container" />
+
+  <section class="container archive-list">
+    {articles.length === 0 ? (
+      <p class="empty-note sans">No published essays yet.</p>
+    ) : (
+      articles.map((article) => <ArticleRow article={article} />)
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .author-head {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    padding-block: var(--space-5) var(--space-3);
+  }
+
+  .author-head__photo {
+    border-radius: 999px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .eyebrow {
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    margin-bottom: 0.4em;
+  }
+
+  .author-head h1 {
+    font-size: clamp(1.9rem, 3.6vw, 2.4rem);
+    margin-bottom: 0.5em;
+  }
+
+  .author-head__bio {
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin-bottom: 0.8em;
+  }
+
+  .author-head__links {
+    display: flex;
+    gap: var(--space-3);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .author-head__links a {
+    color: var(--accent-strong);
+    text-decoration: none;
+  }
+
+  .author-head__links a:hover {
+    text-decoration: underline;
+  }
+
+  .archive-list {
+    padding-block: var(--space-2) var(--space-5);
+  }
+
+  .empty-note {
+    color: var(--ink-faint);
+    padding-block: var(--space-3);
+  }
+
+  @media (max-width: 560px) {
+    .author-head {
+      flex-direction: column;
+    }
+  }
+</style>

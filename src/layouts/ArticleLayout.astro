@@ -1,0 +1,173 @@
+---
+import { Image } from 'astro:assets';
+import { getEntry, render } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import AuthorByline from '../components/AuthorByline.astro';
+import type { Article } from '../lib/utils';
+import { estimateReadingTime, formatDate } from '../lib/utils';
+
+interface Props {
+  article: Article;
+}
+
+const { article } = Astro.props;
+const { data } = article;
+const author = await getEntry('authors', data.author);
+const readingTime = data.readingTimeOverride ?? estimateReadingTime(article.body ?? '', data.language);
+
+const { Content } = await render(article);
+---
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  image={data.coverImage?.src}
+  lang={data.language}
+  articleMeta={{
+    publishedTime: data.publishedDate.toISOString(),
+    modifiedTime: data.updatedDate?.toISOString(),
+    author: author?.data.name ?? data.author,
+    tags: data.tags,
+  }}
+>
+  <article class={`article container ${data.language === 'hi' ? 'lang-hi' : ''}`}>
+    <header class="article__header">
+      <p class="article__category">
+        <a href={`/category/${data.category.toLowerCase()}/`}>{data.category}</a>
+      </p>
+      <h1>{data.title}</h1>
+      <p class="article__description">{data.description}</p>
+      <AuthorByline
+        authorSlug={data.author}
+        date={data.publishedDate}
+        language={data.language}
+        readingTime={readingTime}
+      />
+      {data.updatedDate && (
+        <p class="article__updated sans">Updated {formatDate(data.updatedDate, data.language)}</p>
+      )}
+    </header>
+
+    {data.coverImage && (
+      <figure class="article__cover">
+        <Image src={data.coverImage} alt={data.coverImageAlt ?? ''} width={1400} height={900} loading="eager" />
+      </figure>
+    )}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {data.tags.length > 0 && (
+      <footer class="article__footer">
+        <p class="article__footer-label sans">Filed under</p>
+        <ul class="tag-list">
+          {data.tags.map((tag) => (
+            <li><a href={`/tag/${tag.toLowerCase()}/`}>{tag}</a></li>
+          ))}
+        </ul>
+      </footer>
+    )}
+
+    {author && (
+      <aside class="author-card">
+        <div class="author-card__text">
+          <p class="author-card__label sans">Written by</p>
+          <h2>
+            <a href={`/author/${data.author}/`}>{author.data.name}</a>
+          </h2>
+          <p>{author.data.bio}</p>
+          <a href={`/author/${data.author}/`} class="text-link">More from {author.data.name}</a>
+        </div>
+      </aside>
+    )}
+  </article>
+</BaseLayout>
+
+<style>
+  .article {
+    padding-block: var(--space-4) var(--space-2);
+    max-width: 860px;
+  }
+
+  .article__header {
+    max-width: var(--measure);
+    margin-bottom: var(--space-3);
+  }
+
+  .article__category a {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--accent-strong);
+    text-decoration: none;
+  }
+
+  .article__header h1 {
+    font-size: clamp(2.1rem, 4.4vw, 3rem);
+    margin: 0.4em 0 0.5em;
+  }
+
+  .article__description {
+    font-size: 1.2rem;
+    color: var(--ink-soft);
+    margin-bottom: 1em;
+  }
+
+  .article__updated {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    margin-top: 0.4em;
+  }
+
+  .article__cover {
+    margin: var(--space-4) 0;
+  }
+
+  .article__cover img {
+    border-radius: var(--radius);
+    width: 100%;
+    height: auto;
+  }
+
+  .article__footer {
+    margin-top: var(--space-5);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--rule);
+  }
+
+  .article__footer-label {
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    margin-bottom: 0.8em;
+  }
+
+  .author-card {
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    background: var(--paper-raised);
+    border-radius: var(--radius);
+  }
+
+  .author-card__label {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    margin-bottom: 0.3em;
+  }
+
+  .author-card h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5em;
+  }
+
+  .author-card h2 a {
+    text-decoration: none;
+  }
+
+  .author-card h2 a:hover {
+    color: var(--accent-strong);
+  }
+
+  .author-card p {
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+</style>

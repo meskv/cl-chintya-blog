@@ -1,0 +1,92 @@
+---
+import Logo from './Logo.astro';
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__brand">
+      <Logo />
+      <p class="site-footer__tagline sans">Things worth thinking about.</p>
+    </div>
+
+    <nav class="site-footer__nav sans" aria-label="Footer">
+      <div>
+        <p class="site-footer__heading">Read</p>
+        <a href="/blog">Journal</a>
+        <a href="/search">Search</a>
+      </div>
+      <div>
+        <p class="site-footer__heading">About</p>
+        <a href="/about">About Chintya</a>
+        <a href="/rss.xml">RSS feed</a>
+        <a href="/sitemap-index.xml">Sitemap</a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="container site-footer__bottom sans">
+    <p>&copy; {year} Chintya. All essays remain the property of their authors.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--rule);
+    margin-top: var(--space-6);
+    padding-top: var(--space-5);
+  }
+
+  .site-footer__inner {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    padding-bottom: var(--space-4);
+  }
+
+  .site-footer__tagline {
+    margin-top: var(--space-2);
+    color: var(--ink-faint);
+    font-size: 0.9rem;
+  }
+
+  .site-footer__nav {
+    display: flex;
+    gap: var(--space-5);
+  }
+
+  .site-footer__nav a {
+    display: block;
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding: 0.3em 0;
+    font-size: 0.92rem;
+  }
+
+  .site-footer__nav a:hover {
+    color: var(--accent-strong);
+  }
+
+  .site-footer__heading {
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    margin: 0 0 0.7em;
+  }
+
+  .site-footer__bottom {
+    border-top: 1px solid var(--rule);
+    padding-block: var(--space-2);
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 640px) {
+    .site-footer__inner {
+      flex-direction: column;
+    }
+    .site-footer__nav {
+      gap: var(--space-4);
+    }
+  }
+</style>

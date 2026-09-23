@@ -1,0 +1,64 @@
+---
+interface Props {
+  categories: { name: string; count: number }[];
+}
+const { categories } = Astro.props;
+---
+<ul class="topics">
+  {categories.map((cat) => (
+    <li>
+      <a href={`/category/${cat.name.toLowerCase()}/`}>
+        <span class="topics__name">{cat.name}</span>
+        <span class="topics__count sans">{cat.count.toString().padStart(2, '0')}</span>
+      </a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .topics {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .topics li {
+    border-top: 1px solid var(--rule);
+  }
+
+  .topics li:nth-child(-n+2) {
+    border-top: 1px solid var(--rule);
+  }
+
+  .topics a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 1.1em 1.4em 1.1em 0;
+    text-decoration: none;
+    color: var(--ink);
+    transition: color 0.25s var(--ease);
+  }
+
+  .topics a:hover {
+    color: var(--accent-strong);
+  }
+
+  .topics__name {
+    font-size: 1.2rem;
+    font-family: var(--font-serif);
+  }
+
+  .topics__count {
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 640px) {
+    .topics {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

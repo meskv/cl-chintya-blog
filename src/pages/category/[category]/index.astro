@@ -1,0 +1,58 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleRow from '../../../components/ArticleRow.astro';
+import { getPublicArticles, uniqueCategories } from '../../../lib/utils';
+
+export async function getStaticPaths() {
+  const all = await getCollection('articles');
+  const categories = uniqueCategories(all);
+  return categories.map((category) => ({
+    params: { category: category.toLowerCase() },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const all = await getCollection('articles');
+const articles = getPublicArticles(all).filter((a) => a.data.category === category);
+---
+<BaseLayout
+  title={category}
+  description={`Essays filed under ${category} on Chintya.`}
+>
+  <section class="container archive-head">
+    <p class="eyebrow sans">Topic</p>
+    <h1>{category}</h1>
+    <p class="archive-head__count">{articles.length} {articles.length === 1 ? 'essay' : 'essays'}</p>
+  </section>
+
+  <hr class="rule container" />
+
+  <section class="container archive-list">
+    {articles.map((article) => (
+      <ArticleRow article={article} />
+    ))}
+  </section>
+</BaseLayout>
+
+<style>
+  .archive-head {
+    padding-block: var(--space-5) var(--space-3);
+  }
+  .eyebrow {
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    margin-bottom: 0.6em;
+  }
+  .archive-head h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+  }
+  .archive-head__count {
+    color: var(--ink-soft);
+    margin-top: 0.4em;
+  }
+  .archive-list {
+    padding-block: var(--space-2) var(--space-5);
+  }
+</style>

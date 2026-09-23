@@ -1,0 +1,119 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const authors = (await getCollection('authors')).filter((a) => a.data.active);
+---
+<BaseLayout
+  title="About"
+  description="Chintya is a publication about ideas worth thinking about — philosophy, economics, technology, culture, and the questions underneath them."
+>
+  <section class="container about-hero">
+    <p class="eyebrow sans">About</p>
+    <h1>A publication with no fixed subject</h1>
+    <div class="prose about-prose">
+      <p>
+        चिंत्य — <em>chintya</em> — is a Hindi word for something worth
+        pondering: not yet settled, still turning over in the mind. That's
+        the only real editorial mandate here. We don't cover one beat. An
+        essay on this site might sit next to a history of a failed
+        institution, a close reading of a piece of technology, or a short
+        argument about boredom.
+      </p>
+      <p>
+        What holds it together is a way of writing, not a subject: essays
+        that take one idea seriously enough to follow it somewhere specific,
+        rather than gesture at everything at once. We publish slowly. There
+        is no schedule to keep, no quota of posts per week — an essay goes
+        up when it's ready, not before.
+      </p>
+      <p>
+        Chintya publishes in both English and Hindi, on equal footing.
+        Language here is a choice each writer makes for the piece they're
+        writing, not a translation exercise performed after the fact.
+      </p>
+    </div>
+  </section>
+
+  <hr class="rule container" />
+
+  <section class="container authors-section">
+    <h2>Who writes here</h2>
+    <div class="authors-grid">
+      {authors.map((author) => (
+        <a href={`/author/${author.id}/`} class="author-tile">
+          <h3>{author.data.name}</h3>
+          <p>{author.data.bio}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-hero {
+    padding-block: var(--space-5) var(--space-3);
+  }
+
+  .eyebrow {
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    margin-bottom: 0.5em;
+  }
+
+  .about-hero h1 {
+    font-size: clamp(2.1rem, 4.4vw, 3rem);
+    max-width: 18ch;
+    margin-bottom: 0.8em;
+  }
+
+  .about-prose {
+    max-width: var(--measure);
+  }
+
+  .authors-section {
+    padding-block: var(--space-4) var(--space-5);
+  }
+
+  .authors-section h2 {
+    font-size: 1.55rem;
+    margin-bottom: var(--space-3);
+  }
+
+  .authors-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .author-tile {
+    display: block;
+    padding: var(--space-3);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color 0.25s var(--ease);
+  }
+
+  .author-tile:hover {
+    border-color: var(--accent);
+  }
+
+  .author-tile h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5em;
+  }
+
+  .author-tile p {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .authors-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

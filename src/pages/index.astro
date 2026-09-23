@@ -1,0 +1,147 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Logo from '../components/Logo.astro';
+import FeaturedArticle from '../components/FeaturedArticle.astro';
+import ArticleRow from '../components/ArticleRow.astro';
+import TopicsList from '../components/TopicsList.astro';
+
+const allArticles = await getCollection('articles');
+const published = allArticles.filter((a) => !a.data.draft);
+
+const sorted = [...published].sort((a, b) => {
+  const aOrder = typeof a.data.order === 'number';
+  const bOrder = typeof b.data.order === 'number';
+  if (aOrder && bOrder) return a.data.order! - b.data.order!;
+  if (aOrder) return -1;
+  if (bOrder) return 1;
+  return b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf();
+});
+
+const featured = sorted.find((a) => a.data.featured) ?? sorted[0];
+const latest = sorted.filter((a) => a.id !== featured?.id).slice(0, 6);
+
+const categoryCounts = new Map<string, number>();
+for (const article of published) {
+  categoryCounts.set(article.data.category, (categoryCounts.get(article.data.category) ?? 0) + 1);
+}
+const categories = Array.from(categoryCounts, ([name, count]) => ({ name, count })).sort(
+  (a, b) => b.count - a.count
+);
+---
+<BaseLayout title="Chintya">
+  <section class="masthead container">
+    <Logo size="large" />
+    <p class="masthead__tagline">Things worth thinking about.</p>
+    <p class="masthead__intro">
+      Chintya is a small, unhurried publication about ideas that don't fit
+      neatly into one subject — philosophy, economics, technology, culture,
+      and the ordinary questions underneath all of them. New essays arrive
+      when they're ready, not on a schedule.
+    </p>
+  </section>
+
+  <hr class="rule container" />
+
+  {featured && (
+    <section class="container">
+      <FeaturedArticle article={featured} />
+    </section>
+  )}
+
+  <hr class="rule container" />
+
+  <section class="container latest-section">
+    <div class="section-heading">
+      <h2>Latest essays</h2>
+      <a href="/blog" class="text-link">Browse the full journal</a>
+    </div>
+    <div class="latest-list">
+      {latest.map((article) => (
+        <ArticleRow article={article} />
+      ))}
+    </div>
+  </section>
+
+  <hr class="rule container" />
+
+  <section class="container topics-section">
+    <div class="section-heading">
+      <h2>Explore by topic</h2>
+    </div>
+    <TopicsList categories={categories} />
+  </section>
+
+  <hr class="rule container" />
+
+  <section class="container about-teaser">
+    <div class="about-teaser__text">
+      <h2>Written by people, not a persona</h2>
+      <p>
+        Every essay on Chintya carries a name. We publish more than one
+        author because we don't think a single point of view should be
+        mistaken for the whole of what's worth thinking about.
+      </p>
+      <a href="/about" class="text-link">Read more about Chintya</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .masthead {
+    padding-block: var(--space-6) var(--space-4);
+  }
+
+  .masthead__tagline {
+    font-family: var(--font-serif);
+    font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+    margin: var(--space-3) 0 var(--space-2);
+    max-width: 18ch;
+  }
+
+  .masthead__intro {
+    max-width: 56ch;
+    color: var(--ink-soft);
+    font-size: 1.1rem;
+  }
+
+  .container.rule {
+    margin-block: var(--space-1);
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding-block: var(--space-4) var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .section-heading h2 {
+    font-size: 1.55rem;
+  }
+
+  .latest-section,
+  .topics-section {
+    padding-block: var(--space-2) var(--space-3);
+  }
+
+  .about-teaser {
+    padding-block: var(--space-4) var(--space-5);
+  }
+
+  .about-teaser__text {
+    max-width: 60ch;
+  }
+
+  .about-teaser__text h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.6em;
+  }
+
+  .about-teaser__text p {
+    color: var(--ink-soft);
+    margin-bottom: 1em;
+  }
+</style>
