@@ -1,0 +1,59 @@
+---
+interface Props {
+  categories: { name: string; count: number }[];
+}
+const { categories } = Astro.props;
+---
+<div class="about-list">
+  {categories.map((cat, i) => (
+    <a href={`/category/${cat.name.toLowerCase()}/`}>
+      <span>{String(i + 1).padStart(2, '0')}</span>
+      <div>
+        <h2>{cat.name}</h2>
+        <p>{cat.count} {cat.count === 1 ? 'essay' : 'essays'} filed under this topic.</p>
+      </div>
+    </a>
+  ))}
+</div>
+
+<style>
+  .about-list {
+    border-top: 1px solid hsl(var(--rule));
+  }
+
+  .about-list a {
+    display: grid;
+    grid-template-columns: 45px 1fr;
+    column-gap: 20px;
+    padding: 26px 0;
+    border-bottom: 1px solid hsl(var(--rule));
+    text-decoration: none;
+    color: hsl(var(--foreground));
+    transition: color .2s ease;
+  }
+
+  .about-list a:hover {
+    color: hsl(var(--primary));
+  }
+
+  .about-list span {
+    color: hsl(var(--accent));
+    font: .69rem var(--font-mono);
+    padding-top: 6px;
+  }
+
+  .about-list h2 {
+    font: 500 2.1rem var(--font-serif);
+    margin: 0;
+    letter-spacing: -.03em;
+  }
+
+  .about-list p {
+    color: hsl(var(--ink-soft));
+    font-size: .85rem;
+    line-height: 1.55;
+    margin: 7px 0 0;
+    max-width: 400px;
+    font-family: var(--font-sans);
+  }
+</style>

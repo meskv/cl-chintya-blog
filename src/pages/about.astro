@@ -1,0 +1,128 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthorMini from '../components/AuthorMini.astro';
+
+const authors = (await getCollection('authors')).filter((a) => a.data.active);
+---
+<BaseLayout
+  title="About"
+  description="Chintya is a publication about ideas worth thinking about — philosophy, economics, technology, culture, and the questions underneath them."
+>
+  <section class="container-wide about-hero">
+    <span class="eyebrow">About the publication</span>
+    <h1 class="display-title">A publication with<br /><em>no fixed subject.</em></h1>
+    <p class="about-lede">
+      चिंत्य — <em>chintya</em> — is a Hindi word for something worth pondering: not yet
+      settled, still turning over in the mind. That's the only real editorial mandate here.
+    </p>
+  </section>
+
+  <section class="about-manifesto">
+    <div class="container-wide about-manifesto-grid">
+      <span class="eyebrow">Our editorial premise</span>
+      <div>
+        <p class="serif-copy">We don't cover one beat. What holds it together is a way of writing, not a subject.</p>
+        <p>
+          An essay on this site might sit next to a history of a failed institution, a close
+          reading of a piece of technology, or a short argument about boredom — essays that
+          take one idea seriously enough to follow it somewhere specific, rather than
+          gesture at everything at once. We publish slowly, with no schedule to keep and no
+          quota of posts per week.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-wide about-sections">
+    <div>
+      <span class="eyebrow">What we publish</span>
+    </div>
+    <div class="about-list">
+      <a href="/blog">
+        <span>01</span>
+        <div>
+          <h2>Essays that stay</h2>
+          <p>Writing with a long tail: observations that keep opening after the last line.</p>
+        </div>
+      </a>
+      <a href="/blog">
+        <span>02</span>
+        <div>
+          <h2>Useful strangeness</h2>
+          <p>Fresh ways to look at the ordinary, without turning life into a lesson.</p>
+        </div>
+      </a>
+      <a href="/blog">
+        <span>03</span>
+        <div>
+          <h2>Many ways of knowing</h2>
+          <p>
+            English and Hindi, on equal footing — language here is a choice each writer
+            makes for the piece they're writing, not a translation exercise after the fact.
+          </p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="container-wide about-contributors">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">The editorial desk</span>
+        <h2 class="display-title">People who look closely</h2>
+      </div>
+      <a href="/authors" class="text-link">
+        All writers
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+      </a>
+    </div>
+    <div class="author-row">
+      {authors.map((author) => <AuthorMini author={author} />)}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-hero { padding-top: clamp(70px, 11vw, 150px); padding-bottom: 90px; }
+  .about-hero h1 { font-size: clamp(3rem, 8vw, 6.6rem); margin: 20px 0 26px; }
+  .about-lede {
+    max-width: 620px;
+    color: hsl(var(--ink-soft));
+    font: 500 clamp(1.2rem, 2.4vw, 1.7rem)/1.3 var(--font-serif);
+  }
+  .about-lede em { font-style: italic; color: hsl(var(--primary)); }
+
+  .about-manifesto {
+    background: hsl(var(--primary));
+    color: hsl(var(--background));
+    padding: 70px 0;
+  }
+  .about-manifesto-grid { display: grid; grid-template-columns: 1fr 1.7fr; gap: 15%; }
+  .about-manifesto .eyebrow { color: hsl(var(--background) / .68); }
+  .about-manifesto .serif-copy { font-size: clamp(2rem, 3.6vw, 3.2rem); line-height: 1.08; margin: 0 0 24px; font-weight: 500; }
+  .about-manifesto-grid p:last-child { max-width: 510px; line-height: 1.7; color: hsl(var(--background) / .72); font-family: var(--font-sans); }
+
+  .about-sections { padding-top: 90px; padding-bottom: 100px; display: grid; grid-template-columns: .7fr 1.3fr; gap: 10%; }
+
+  .about-list { border-top: 1px solid hsl(var(--rule)); }
+  .about-list a { display: grid; grid-template-columns: 45px 1fr; column-gap: 20px; padding: 26px 0; border-bottom: 1px solid hsl(var(--rule)); text-decoration: none; color: hsl(var(--foreground)); }
+  .about-list a:hover h2 { color: hsl(var(--primary)); }
+  .about-list span { color: hsl(var(--accent)); font: .69rem var(--font-mono); padding-top: 6px; }
+  .about-list h2 { font: 500 2.1rem var(--font-serif); margin: 0; letter-spacing: -.03em; transition: color .2s ease; }
+  .about-list p { color: hsl(var(--ink-soft)); font-size: .85rem; line-height: 1.55; margin: 7px 0 0; max-width: 420px; font-family: var(--font-sans); }
+
+  .about-contributors { padding-top: 90px; padding-bottom: 100px; }
+  .about-contributors .section-heading { margin-bottom: 35px; display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+  .about-contributors h2 { font-size: clamp(2rem, 4vw, 3rem); margin-top: 10px; }
+  .author-row { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid hsl(var(--rule)); }
+
+  @media (max-width: 767px) {
+    .about-manifesto-grid, .about-sections { grid-template-columns: 1fr; gap: 30px; }
+    .about-sections { padding-top: 60px; padding-bottom: 60px; }
+    .about-contributors { padding-top: 60px; padding-bottom: 60px; }
+    .about-manifesto { padding: 50px 0; }
+    .section-heading { flex-direction: column; align-items: start; }
+    .author-row { grid-template-columns: 1fr; }
+  }
+</style>

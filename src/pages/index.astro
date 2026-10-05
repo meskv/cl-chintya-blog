@@ -1,0 +1,277 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FeaturedArticle from '../components/FeaturedArticle.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import TopicsList from '../components/TopicsList.astro';
+import AuthorMini from '../components/AuthorMini.astro';
+import { sortArticles } from '../lib/utils';
+
+const allArticles = await getCollection('articles');
+const published = allArticles.filter((a) => !a.data.draft);
+const sorted = sortArticles(published);
+
+const featured = sorted.find((a) => a.data.featured) ?? sorted[0];
+const latest = sorted.filter((a) => a.id !== featured?.id).slice(0, 6);
+
+const categoryCounts = new Map<string, number>();
+for (const article of published) {
+  categoryCounts.set(article.data.category, (categoryCounts.get(article.data.category) ?? 0) + 1);
+}
+const categories = Array.from(categoryCounts, ([name, count]) => ({ name, count })).sort(
+  (a, b) => b.count - a.count
+);
+
+const authors = (await getCollection('authors')).filter((a) => a.data.active).slice(0, 3);
+---
+<BaseLayout title="Chintya">
+  <section class="hero container-wide">
+    <div class="hero-copy reveal">
+      <p class="eyebrow">Independent ideas / Vol. 02</p>
+      <h1 class="display-title">Things worth<br /><em>thinking</em> about.</h1>
+      <p class="hero-dek">
+        Chintya is a small, unhurried publication for the pause between noticing and
+        knowing — essays on philosophy, society, economics, technology, and the ordinary
+        questions underneath all of them.
+      </p>
+      <a href="/blog" class="text-link">
+        Read the archive
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+      </a>
+    </div>
+    {featured && <FeaturedArticle article={featured} />}
+  </section>
+
+  <section class="manifesto-strip">
+    <div class="container-wide manifesto-inner">
+      <span class="eyebrow">A small editorial note</span>
+      <p class="serif-copy">"The best ideas do not ask to be agreed with. They ask to be lived with."</p>
+      <span class="manifesto-mark">CH</span>
+    </div>
+  </section>
+
+  <section class="container-wide latest-section">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">From the archive</span>
+        <h2 class="display-title">Recently considered</h2>
+      </div>
+      <a href="/blog" class="text-link">
+        View all
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+      </a>
+    </div>
+    <div class="latest-grid">
+      {latest.map((article, index) => (
+        <div class={`reveal reveal-delay-${Math.min(index + 1, 3)}`}>
+          <ArticleCard article={article} />
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="field-note">
+    <div class="container-wide field-note-inner">
+      <div>
+        <span class="eyebrow">Explore by topic</span>
+        <h2 class="display-title">Small observations.<br /><em>Large questions.</em></h2>
+      </div>
+      <div class="field-note-copy">
+        <p>
+          Chintya doesn't cover one beat. Philosophy sits next to markets, memory sits next
+          to cities. Browse the full range of what's been considered so far.
+        </p>
+        <a href="/blog" class="text-link">
+          Browse the journal
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-wide topics-section">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">The full range</span>
+        <h2 class="display-title">Browse by topic</h2>
+      </div>
+    </div>
+    <TopicsList categories={categories} />
+  </section>
+
+  <section class="container-wide author-spotlight">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">The people behind the pages</span>
+        <h2 class="display-title">A few good voices</h2>
+      </div>
+      <a href="/authors" class="text-link">
+        Meet the writers
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+      </a>
+    </div>
+    <div class="author-row">
+      {authors.map((author) => <AuthorMini author={author} />)}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: 1.08fr .92fr;
+    gap: 9%;
+    padding-top: clamp(68px, 10vw, 132px);
+    padding-bottom: clamp(76px, 11vw, 145px);
+  }
+
+  .hero-copy {
+    padding-top: 9px;
+  }
+
+  .hero h1 {
+    font-size: clamp(3.6rem, 8vw, 7rem);
+    margin: 23px 0 27px;
+    max-width: 680px;
+  }
+
+  .hero-dek {
+    max-width: 445px;
+    font-size: 1.03rem;
+    line-height: 1.65;
+    color: hsl(var(--ink-soft));
+    margin-bottom: 31px;
+    font-family: var(--font-sans);
+  }
+
+  .manifesto-strip {
+    border-block: 1px solid hsl(var(--rule));
+    background: hsl(var(--paper-raised) / .58);
+  }
+
+  .manifesto-inner {
+    display: grid;
+    grid-template-columns: 1fr 2.2fr .4fr;
+    align-items: center;
+    gap: 25px;
+    padding: 36px 0;
+  }
+
+  .manifesto-inner p {
+    font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+    letter-spacing: -.03em;
+    line-height: 1.08;
+    margin: 0;
+  }
+
+  .manifesto-mark {
+    color: hsl(var(--accent));
+    font: 700 1rem var(--font-mono);
+    text-align: right;
+    letter-spacing: .12em;
+  }
+
+  .latest-section, .author-spotlight, .topics-section {
+    padding-top: clamp(70px, 9vw, 115px);
+    padding-bottom: clamp(70px, 9vw, 115px);
+  }
+
+  .topics-section {
+    max-width: 900px;
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(2.4rem, 4.2vw, 3.6rem);
+    margin: 14px 0 0;
+  }
+
+  .latest-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+
+  .field-note {
+    background: hsl(var(--primary));
+    color: hsl(var(--background));
+    padding: clamp(64px, 9vw, 100px) 0;
+  }
+
+  .field-note .eyebrow, .field-note-copy {
+    color: hsl(var(--background) / .68);
+  }
+
+  .field-note h2 {
+    font-size: clamp(2.8rem, 6vw, 5.4rem);
+    margin: 18px 0 0;
+    color: hsl(var(--background));
+  }
+
+  .field-note h2 em {
+    color: hsl(var(--accent));
+  }
+
+  .field-note-inner {
+    display: grid;
+    grid-template-columns: 1.4fr .6fr;
+    gap: 10%;
+    align-items: end;
+  }
+
+  .field-note-copy {
+    align-self: end;
+    padding-bottom: 10px;
+  }
+
+  .field-note-copy p {
+    line-height: 1.65;
+    font-size: .95rem;
+    margin: 0 0 28px;
+    font-family: var(--font-sans);
+  }
+
+  .field-note .text-link {
+    color: hsl(var(--background));
+    border-color: hsl(var(--accent));
+  }
+
+  .author-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid hsl(var(--rule));
+  }
+
+  @media (max-width: 900px) {
+    .hero { gap: 5%; }
+    .hero h1 { font-size: clamp(3.4rem, 8vw, 5.6rem); }
+  }
+
+  @media (max-width: 767px) {
+    .hero {
+      display: flex;
+      flex-direction: column;
+      padding-top: 68px;
+      gap: 55px;
+    }
+    .hero h1 { font-size: clamp(3.2rem, 14vw, 5rem); }
+    .manifesto-inner {
+      grid-template-columns: 1fr;
+      gap: 14px;
+      padding: 28px 0;
+    }
+    .manifesto-mark { display: none; }
+    .latest-grid { grid-template-columns: 1fr; gap: 48px; }
+    .section-heading { align-items: start; flex-direction: column; }
+    .section-heading h2 { margin-top: 10px; }
+    .field-note-inner { grid-template-columns: 1fr; gap: 37px; }
+    .author-row { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,42 @@
+---
+interface Props {
+  size?: 'default' | 'large';
+  compact?: boolean;
+}
+const { size = 'default', compact = false } = Astro.props;
+---
+<a href="/" class={`brand-lockup ${compact ? 'brand-compact' : ''} ${size === 'large' ? 'brand-large' : ''}`} aria-label="CHINTYA — home">
+  <span class="brand-mark">CHINTYA</span>
+  <span class="brand-devanagari" lang="hi">चिंत्य</span>
+</a>
+
+<style>
+  .brand-lockup {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    color: hsl(var(--foreground));
+    text-decoration: none;
+  }
+
+  .brand-lockup .brand-devanagari {
+    font-size: .82rem;
+    color: hsl(var(--primary));
+  }
+
+  .brand-compact {
+    gap: 6px;
+  }
+
+  .brand-compact .brand-mark {
+    font-size: .82rem;
+  }
+
+  .brand-large .brand-mark {
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+  }
+
+  .brand-large .brand-devanagari {
+    font-size: clamp(1.1rem, 2.6vw, 1.6rem);
+  }
+</style>

@@ -1,0 +1,314 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleRow from '../../components/ArticleRow.astro';
+import { getPublicArticles, uniqueCategories, uniqueTags } from '../../lib/utils';
+
+const all = await getCollection('articles');
+const articles = getPublicArticles(all);
+const categories = uniqueCategories(all);
+const tags = uniqueTags(all);
+---
+<BaseLayout title="Archive" description="Every published essay on Chintya, filterable by topic, tag and language.">
+  <section class="container-wide archive-head">
+    <span class="eyebrow">The archive / {new Date().getFullYear()}</span>
+    <h1 class="display-title">A shelf of<br /><em>unfinished thoughts.</em></h1>
+    <p>
+      Long reads and short provocations for the curious mind. No breaking news. Nothing to
+      keep up with. <a href="/search" class="text-link-inline">Search instead</a> if you
+      already know what you're looking for.
+    </p>
+  </section>
+
+  <section class="container-wide archive-body">
+    <div class="filter-row" role="group" aria-label="Filter by category" id="filter-row">
+      <button type="button" class="filter-button active" data-category="">All</button>
+      {categories.map((c) => <button type="button" class="filter-button" data-category={c}>{c}</button>)}
+    </div>
+
+    <div class="filter-row filter-row--secondary">
+      <input
+        id="filter-search"
+        type="search"
+        class="filter-search"
+        placeholder="Search titles, descriptions, tags…"
+        aria-label="Search essays"
+        autocomplete="off"
+      />
+      <select id="filter-tag" class="filter-select" aria-label="Filter by tag">
+        <option value="">All tags</option>
+        {tags.map((t) => <option value={t}>{t}</option>)}
+      </select>
+      <div class="lang-toggle" role="group" aria-label="Filter by language">
+        <button type="button" class="lang-toggle__btn is-active" data-lang="">All</button>
+        <button type="button" class="lang-toggle__btn" data-lang="en">EN</button>
+        <button type="button" class="lang-toggle__btn" data-lang="hi">हिंदी</button>
+      </div>
+      <button type="button" id="filter-clear" class="text-link filter-clear" hidden>Clear</button>
+    </div>
+
+    <div class="section-heading">
+      <span class="kicker" id="filter-status">{articles.length} {articles.length === 1 ? 'essay' : 'essays'}</span>
+      <span class="editorial-rule flex-1"></span>
+    </div>
+
+    <div class="archive-list" id="archive-list">
+      {articles.map((article, index) => (
+        <div
+          class="archive-item reveal"
+          style={`animation-delay:${Math.min(index, 8) * 60}ms`}
+          data-category={article.data.category}
+          data-tags={article.data.tags.join('|')}
+          data-language={article.data.language}
+          data-search={`${article.data.title} ${article.data.description} ${article.data.category} ${article.data.tags.join(' ')}`.toLowerCase()}
+        >
+          <ArticleRow article={article} index={index + 1} />
+        </div>
+      ))}
+    </div>
+
+    <p id="filter-empty" class="filter-empty" hidden>Nothing matches those filters. Try clearing one of them.</p>
+
+    <div class="load-more-wrap">
+      <button type="button" id="load-more" class="text-link" hidden>Load more essays</button>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .archive-head {
+    padding-top: clamp(70px, 10vw, 130px);
+    padding-bottom: 60px;
+  }
+
+  .archive-head h1 {
+    font-size: clamp(3.2rem, 7.5vw, 6.4rem);
+    margin: 20px 0 24px;
+  }
+
+  .archive-head > p {
+    max-width: 480px;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.65;
+    color: hsl(var(--ink-soft));
+    font-family: var(--font-sans);
+  }
+
+  .text-link-inline {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--rule));
+  }
+
+  .archive-body {
+    padding-bottom: 120px;
+  }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    align-items: center;
+    border-block: 1px solid hsl(var(--rule));
+    padding: 15px 0;
+  }
+
+  .filter-row--secondary {
+    border-top: 0;
+    margin-bottom: 35px;
+  }
+
+  .filter-button {
+    border: 1px solid transparent;
+    background: transparent;
+    color: hsl(var(--ink-faint));
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: .7rem;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    font-family: var(--font-sans);
+    font-weight: 600;
+  }
+
+  .filter-button:hover, .filter-button.active {
+    border-color: hsl(var(--primary));
+    color: hsl(var(--primary));
+  }
+
+  .filter-search {
+    flex: 1 1 220px;
+    font-family: var(--font-sans);
+    font-size: .85rem;
+    padding: .6em .2em;
+    border: 0;
+    border-bottom: 1px solid hsl(var(--rule));
+    background: transparent;
+    color: hsl(var(--foreground));
+  }
+
+  .filter-search:focus-visible {
+    border-color: hsl(var(--primary));
+    outline: none;
+  }
+
+  .filter-select {
+    font-family: var(--font-sans);
+    font-size: .78rem;
+    padding: .5em .6em;
+    border: 1px solid hsl(var(--rule));
+    background: hsl(var(--paper-raised));
+    color: hsl(var(--foreground));
+  }
+
+  .lang-toggle {
+    display: inline-flex;
+    gap: .3rem;
+  }
+
+  .lang-toggle__btn {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: .45em .8em;
+    border: 1px solid hsl(var(--rule));
+    background: transparent;
+    color: hsl(var(--ink-soft));
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+
+  .lang-toggle__btn:hover { border-color: hsl(var(--primary)); }
+  .lang-toggle__btn.is-active { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+
+  .filter-clear {
+    margin-left: auto;
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .flex-1 { flex: 1; }
+
+  .archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 43px;
+  }
+
+  .archive-item[hidden] { display: none; }
+
+  .filter-empty {
+    color: hsl(var(--ink-faint));
+    font-family: var(--font-sans);
+    padding-block: 40px;
+  }
+
+  .load-more-wrap {
+    display: flex;
+    justify-content: center;
+    padding-top: 40px;
+  }
+
+  @media (max-width: 767px) {
+    .archive-head { padding-top: 70px; padding-bottom: 45px; }
+    .archive-head h1 { font-size: clamp(3rem, 15vw, 4.6rem); }
+    .filter-clear { margin-left: 0; }
+  }
+</style>
+
+<script>
+  const items = Array.from(document.querySelectorAll<HTMLDivElement>('.archive-item'));
+  const categoryButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.filter-button'));
+  const searchInput = document.getElementById('filter-search') as HTMLInputElement | null;
+  const tagSelect = document.getElementById('filter-tag') as HTMLSelectElement | null;
+  const langButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.lang-toggle__btn'));
+  const clearBtn = document.getElementById('filter-clear') as HTMLButtonElement | null;
+  const statusEl = document.getElementById('filter-status');
+  const emptyEl = document.getElementById('filter-empty');
+  const loadMoreBtn = document.getElementById('load-more') as HTMLButtonElement | null;
+
+  const PAGE_SIZE = 8;
+  let visibleCount = PAGE_SIZE;
+  let activeCategory = '';
+  let activeLang = '';
+
+  function matches(item: HTMLDivElement): boolean {
+    const q = (searchInput?.value ?? '').trim().toLowerCase();
+    const tag = tagSelect?.value ?? '';
+
+    if (activeCategory && item.dataset.category !== activeCategory) return false;
+    if (tag && !(item.dataset.tags ?? '').split('|').includes(tag)) return false;
+    if (activeLang && item.dataset.language !== activeLang) return false;
+    if (q && !(item.dataset.search ?? '').includes(q)) return false;
+    return true;
+  }
+
+  function isFiltering(): boolean {
+    return Boolean((searchInput?.value ?? '').trim() || tagSelect?.value || activeLang || activeCategory);
+  }
+
+  function render() {
+    const matched = items.filter(matches);
+
+    items.forEach((item) => { item.hidden = true; });
+    matched.slice(0, visibleCount).forEach((item) => { item.hidden = false; });
+
+    if (statusEl) {
+      statusEl.textContent =
+        matched.length === 0
+          ? 'No essays match those filters'
+          : `Showing ${Math.min(visibleCount, matched.length)} of ${matched.length} essay${matched.length === 1 ? '' : 's'}`;
+    }
+
+    if (emptyEl) emptyEl.hidden = matched.length !== 0;
+    if (loadMoreBtn) loadMoreBtn.hidden = matched.length <= visibleCount;
+    if (clearBtn) clearBtn.hidden = !isFiltering();
+  }
+
+  function resetAndRender() {
+    visibleCount = PAGE_SIZE;
+    render();
+  }
+
+  categoryButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeCategory = btn.dataset.category ?? '';
+      categoryButtons.forEach((b) => b.classList.toggle('active', b === btn));
+      resetAndRender();
+    });
+  });
+
+  searchInput?.addEventListener('input', resetAndRender);
+  tagSelect?.addEventListener('change', resetAndRender);
+
+  langButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeLang = btn.dataset.lang ?? '';
+      langButtons.forEach((b) => b.classList.toggle('is-active', b === btn));
+      resetAndRender();
+    });
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    if (tagSelect) tagSelect.value = '';
+    activeLang = '';
+    activeCategory = '';
+    langButtons.forEach((b) => b.classList.toggle('is-active', b.dataset.lang === ''));
+    categoryButtons.forEach((b) => b.classList.toggle('active', b.dataset.category === ''));
+    resetAndRender();
+  });
+
+  loadMoreBtn?.addEventListener('click', () => {
+    visibleCount += PAGE_SIZE;
+    render();
+  });
+
+  render();
+</script>

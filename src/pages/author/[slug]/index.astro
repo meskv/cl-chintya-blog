@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { articlesByAuthor, initials } from '../../../lib/utils';
+
+export async function getStaticPaths() {
+  const authors = await getCollection('authors');
+  return authors
+    .filter((a) => a.data.active)
+    .map((author) => ({
+      params: { slug: author.id },
+      props: { author },
+    }));
+}
+
+const { author } = Astro.props;
+const allArticles = await getCollection('articles');
+const articles = articlesByAuthor(allArticles, author.id);
+
+const socialLinks = [
+  { label: 'Website', url: author.data.website },
+  { label: 'Twitter', url: author.data.social?.twitter },
+  { label: 'LinkedIn', url: author.data.social?.linkedin },
+  { label: 'Instagram', url: author.data.social?.instagram },
+].filter((l): l is { label: string; url: string } => Boolean(l.url));
+---
+<BaseLayout title={author.data.name} description={author.data.bio}>
+  <section class="container-wide listing-head">
+    <a href="/authors" class="back-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Writers
+    </a>
+    <span class="eyebrow">Contributor</span>
+    <h1 class="display-title">{author.data.name}</h1>
+    <p>{author.data.bio}</p>
+    <div class="listing-author">
+      {author.data.photo ? (
+        <Image src={author.data.photo} alt={author.data.name} width={52} height={52} class="author-photo" />
+      ) : (
+        <span class="author-avatar large">{initials(author.data.name)}</span>
+      )}
+      {socialLinks.map((link) => (
+        <a href={link.url} target="_blank" rel="noreferrer" class="author-link">
+          {link.label}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="container-wide listing-results">
+    <div class="section-heading">
+      <span class="kicker">{articles.length} {articles.length === 1 ? 'essay' : 'essays'}</span>
+      <span class="editorial-rule flex-1"></span>
+    </div>
+    {articles.length === 0 ? (
+      <p class="empty-note">No published essays yet.</p>
+    ) : (
+      <div class="latest-grid">
+        {articles.map((article) => <ArticleCard article={article} />)}
+      </div>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .listing-head { padding-top: clamp(70px, 10vw, 130px); padding-bottom: 70px; }
+  .listing-head .eyebrow { display: block; margin-top: 48px; }
+  .listing-head h1 { font-size: clamp(2.6rem, 6vw, 4.8rem); margin: 16px 0 18px; }
+  .listing-head > p { max-width: 550px; color: hsl(var(--ink-soft)); line-height: 1.65; margin: 0; font-size: 1rem; font-family: var(--font-sans); }
+  .back-link { display: inline-flex; align-items: center; gap: 8px; color: hsl(var(--ink-faint)); font-size: .69rem; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; font-family: var(--font-sans); font-weight: 600; }
+  .back-link:hover { color: hsl(var(--primary)); }
+  .listing-author { display: flex; align-items: center; gap: 12px; margin-top: 25px; font-size: .75rem; color: hsl(var(--ink-soft)); font-family: var(--font-sans); }
+  .author-photo { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+  .author-link { display: inline-flex; align-items: center; gap: 4px; color: hsl(var(--primary)); text-decoration: none; margin-left: 8px; }
+  .author-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .listing-results { padding-bottom: 120px; }
+  .section-heading { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .flex-1 { flex: 1; }
+  .latest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px 23px; }
+  .empty-note { color: hsl(var(--ink-faint)); font-family: var(--font-sans); }
+  @media (max-width: 767px) {
+    .listing-head { padding-top: 55px; padding-bottom: 45px; }
+    .listing-head .eyebrow { margin-top: 36px; }
+    .listing-head h1 { font-size: clamp(2.4rem, 13vw, 3.6rem); }
+    .latest-grid { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,106 @@
+---
+import { estimateReadingTime, visualVariant } from '../lib/utils';
+import type { Article } from '../lib/utils';
+import Visual from './Visual.astro';
+
+interface Props {
+  article: Article;
+}
+
+const { article } = Astro.props;
+const { data } = article;
+---
+<div class="hero-aside reveal reveal-delay-2">
+  <div class="hero-index"><span>01</span><span>Featured essay</span></div>
+  <a href={`/blog/${article.id}/`} class="hero-visual-link">
+    <Visual
+      image={data.coverImage}
+      alt={data.coverImageAlt ?? ''}
+      label={`${data.category} / CHINTYA`}
+      variant={visualVariant(data.category)}
+      class="hero-visual"
+      eager
+    />
+  </a>
+  <div class="hero-feature-caption">
+    <span class="eyebrow">{data.category}</span>
+    <h2 class={data.language === 'hi' ? 'lang-hi' : ''}><a href={`/blog/${article.id}/`}>{data.title}</a></h2>
+    <p>{data.description}</p>
+    <a href={`/blog/${article.id}/`} class="text-link small">
+      Read essay
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+    </a>
+  </div>
+</div>
+
+<style>
+  .hero-aside {
+    max-width: 450px;
+    width: 100%;
+    justify-self: end;
+  }
+
+  .hero-index {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: hsl(var(--ink-faint));
+    font: .65rem var(--font-mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 13px;
+  }
+
+  .hero-index span:first-child {
+    color: hsl(var(--accent));
+    font-size: .8rem;
+  }
+
+  .hero-visual-link {
+    display: block;
+  }
+
+  .hero-aside :global(.hero-visual) {
+    aspect-ratio: .94;
+    min-height: 360px;
+  }
+
+  .hero-feature-caption {
+    padding: 19px 0 0 26px;
+    border-left: 1px solid hsl(var(--rule));
+    margin-left: 26px;
+  }
+
+  .hero-feature-caption h2 {
+    font: 500 clamp(1.4rem, 2.4vw, 2rem)/1.04 var(--font-serif);
+    letter-spacing: -.03em;
+    margin: 9px 0 8px;
+  }
+
+  .hero-feature-caption h2 a {
+    text-decoration: none;
+  }
+
+  .hero-feature-caption h2 a:hover {
+    color: hsl(var(--primary));
+  }
+
+  .hero-feature-caption p {
+    color: hsl(var(--ink-soft));
+    font-size: .86rem;
+    line-height: 1.55;
+    max-width: 390px;
+    margin: 0 0 17px;
+    font-family: var(--font-sans);
+  }
+
+  @media (max-width: 767px) {
+    .hero-aside {
+      max-width: none;
+    }
+    .hero-aside :global(.hero-visual) {
+      aspect-ratio: 1.1;
+      min-height: 0;
+    }
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { getPublicArticles, uniqueTags, slugify } from '../../../lib/utils';
+
+export async function getStaticPaths() {
+  const all = await getCollection('articles');
+  const tags = uniqueTags(all);
+  return tags.map((tag) => ({
+    params: { tag: tag.toLowerCase() },
+    props: { tag },
+  }));
+}
+
+const { tag } = Astro.props;
+const all = await getCollection('articles');
+const articles = getPublicArticles(all).filter((a) =>
+  a.data.tags.some((t) => slugify(t) === slugify(tag))
+);
+---
+<BaseLayout title={`#${tag}`} description={`Essays tagged ${tag} on Chintya.`}>
+  <section class="container-wide listing-head">
+    <a href="/blog" class="back-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Archive
+    </a>
+    <span class="eyebrow">Tag</span>
+    <h1 class="display-title">#{tag}</h1>
+    <p>Essays tagged {tag}, gathered from the Chintya archive.</p>
+  </section>
+
+  <section class="container-wide listing-results">
+    <div class="section-heading">
+      <span class="kicker">{articles.length} {articles.length === 1 ? 'essay' : 'essays'}</span>
+      <span class="editorial-rule flex-1"></span>
+    </div>
+    <div class="latest-grid">
+      {articles.map((article) => <ArticleCard article={article} />)}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .listing-head { padding-top: clamp(70px, 10vw, 130px); padding-bottom: 70px; }
+  .listing-head .eyebrow { display: block; margin-top: 48px; }
+  .listing-head h1 { font-size: clamp(2.8rem, 6.5vw, 5.4rem); margin: 16px 0 18px; }
+  .listing-head > p { max-width: 550px; color: hsl(var(--ink-soft)); line-height: 1.65; margin: 0; font-size: 1rem; font-family: var(--font-sans); }
+  .back-link { display: inline-flex; align-items: center; gap: 8px; color: hsl(var(--ink-faint)); font-size: .69rem; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; font-family: var(--font-sans); font-weight: 600; }
+  .back-link:hover { color: hsl(var(--primary)); }
+  .listing-results { padding-bottom: 120px; }
+  .section-heading { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .flex-1 { flex: 1; }
+  .latest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px 23px; }
+  @media (max-width: 767px) {
+    .listing-head { padding-top: 55px; padding-bottom: 45px; }
+    .listing-head .eyebrow { margin-top: 36px; }
+    .listing-head h1 { font-size: clamp(2.6rem, 14vw, 4rem); }
+    .latest-grid { grid-template-columns: 1fr; }
+  }
+</style>

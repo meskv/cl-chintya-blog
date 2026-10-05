@@ -1,0 +1,36 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  image?: ImageMetadata;
+  alt?: string;
+  label?: string;
+  variant?: 'default' | 'warm' | 'night';
+  class?: string;
+  eager?: boolean;
+  width?: number;
+  height?: number;
+}
+
+const {
+  image,
+  alt = '',
+  label,
+  variant = 'default',
+  class: className = '',
+  eager = false,
+  width = 900,
+  height = 700,
+} = Astro.props;
+---
+{image ? (
+  <div class={`cover-visual ${className}`}>
+    <Image src={image} alt={alt} width={width} height={height} loading={eager ? 'eager' : 'lazy'} />
+    {label && <span class="visual-label">{label}</span>}
+  </div>
+) : (
+  <div class={`visual-field ${variant !== 'default' ? variant : ''} ${className}`} aria-hidden="true">
+    {label && <span class="visual-label">{label}</span>}
+  </div>
+)}

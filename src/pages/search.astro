@@ -1,0 +1,178 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { uniqueTags } from '../lib/utils';
+
+const all = await getCollection('articles');
+const suggestions = uniqueTags(all).slice(0, 6);
+---
+<BaseLayout title="Search" description="Search Chintya by title, description, tag, category or author.">
+  <section class="search-page container-wide">
+    <span class="eyebrow">The index</span>
+    <h1 class="display-title">What are you<br /><em>looking for?</em></h1>
+    <div class="search-box">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input
+        id="search-input"
+        type="search"
+        autofocus
+        placeholder="Try “institutions”, “attention”, or an author's name…"
+        aria-label="Search Chintya"
+        autocomplete="off"
+      />
+    </div>
+    <div class="search-status" id="search-status">Loading the index…</div>
+
+    <div class="search-suggestions" id="search-suggestions">
+      <span class="kicker">Try a path</span>
+      {suggestions.map((tag) => <button type="button" data-suggestion={tag}>#{tag}</button>)}
+    </div>
+
+    <div class="search-results" id="search-results" hidden></div>
+
+    <div class="empty-search" id="empty-search" hidden>
+      <span class="eyebrow">Nothing here yet</span>
+      <h2 class="serif-copy">No matching thought.</h2>
+      <p>Try a broader phrase, or browse the <a href="/blog">full archive</a>.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .search-page { padding-top: clamp(70px, 11vw, 140px); padding-bottom: 130px; }
+  .search-page h1 { font-size: clamp(3rem, 8vw, 6.6rem); margin: 20px 0 40px; }
+  .search-box {
+    border-bottom: 2px solid hsl(var(--foreground));
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    max-width: 720px;
+    padding: 12px 0;
+  }
+  .search-box svg { color: hsl(var(--primary)); flex-shrink: 0; }
+  .search-box input {
+    border: 0; outline: 0; background: transparent; color: hsl(var(--foreground));
+    width: 100%; font: 500 1.25rem var(--font-serif);
+  }
+  .search-box input::placeholder { color: hsl(var(--ink-faint) / .8); }
+  .search-status { color: hsl(var(--ink-faint)); font: .7rem var(--font-mono); margin: 18px 0 32px; min-height: 1.4em; }
+  .search-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 35px 23px; }
+  .search-results :global(a.article-card) { color: hsl(var(--foreground)); }
+  .search-suggestions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; max-width: 620px; }
+  .search-suggestions .kicker { width: 100%; margin-bottom: 5px; }
+  .search-suggestions button {
+    border: 1px solid hsl(var(--rule)); background: transparent; color: hsl(var(--primary));
+    cursor: pointer; padding: 7px 10px; font-size: .72rem; font-family: var(--font-sans);
+  }
+  .search-suggestions button:hover { border-color: hsl(var(--primary)); }
+  .empty-search { border-top: 1px solid hsl(var(--rule)); padding-top: 32px; max-width: 520px; }
+  .empty-search h2 { font-size: 2.4rem; margin: 15px 0 8px; }
+  .empty-search p { color: hsl(var(--ink-soft)); font-family: var(--font-sans); }
+  .empty-search a { color: hsl(var(--primary)); }
+  @media (max-width: 767px) {
+    .search-page h1 { font-size: clamp(2.8rem, 15vw, 4.6rem); }
+    .search-results { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  import type { VisualVariant } from '../lib/utils';
+
+  type SearchItem = {
+    title: string;
+    description: string;
+    url: string;
+    category: string;
+    tags: string[];
+    author: string;
+    language: 'en' | 'hi';
+    readingTime: number;
+  };
+
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const results = document.getElementById('search-results');
+  const status = document.getElementById('search-status');
+  const suggestionsBox = document.getElementById('search-suggestions');
+  const emptyBox = document.getElementById('empty-search');
+
+  let items: SearchItem[] = [];
+
+  function variantFor(seed: string): VisualVariant {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+    const variants: VisualVariant[] = ['default', 'warm', 'night'];
+    return variants[hash % variants.length];
+  }
+
+  function cardHtml(item: SearchItem): string {
+    const variant = variantFor(item.category);
+    const variantClass = variant === 'default' ? '' : variant;
+    return `
+      <a href="${item.url}" class="article-card hover-lift">
+        <div class="visual-field ${variantClass} card-visual" aria-hidden="true"><span class="visual-label">${item.category}</span></div>
+        <div class="card-copy">
+          <div class="card-topline"><span class="eyebrow">${item.category}</span></div>
+          <h3${item.language === 'hi' ? ' class="lang-hi"' : ''}>${item.title}</h3>
+          <p>${item.description}</p>
+          <div class="article-meta article-meta-compact"><span>${item.author}</span><span>${item.readingTime} min read</span></div>
+        </div>
+      </a>
+    `;
+  }
+
+  function render(query: string) {
+    if (!results || !status || !suggestionsBox || !emptyBox) return;
+    const q = query.trim().toLowerCase();
+
+    if (!q) {
+      results.hidden = true;
+      emptyBox.hidden = true;
+      suggestionsBox.hidden = false;
+      status.textContent = `${items.length} essays indexed. Search titles, ideas, tags, and bylines.`;
+      return;
+    }
+
+    const matches = items.filter((item) => {
+      const haystack = [item.title, item.description, item.category, item.author, ...item.tags].join(' ').toLowerCase();
+      return haystack.includes(q);
+    });
+
+    suggestionsBox.hidden = true;
+    status.textContent = `${matches.length} ${matches.length === 1 ? 'result' : 'results'} for “${query}”`;
+
+    if (matches.length === 0) {
+      results.hidden = true;
+      emptyBox.hidden = false;
+      return;
+    }
+
+    emptyBox.hidden = true;
+    results.hidden = false;
+    results.innerHTML = matches.map(cardHtml).join('');
+  }
+
+  async function init() {
+    try {
+      const res = await fetch('/search-index.json');
+      items = await res.json();
+      render(input?.value ?? '');
+    } catch (err) {
+      if (status) status.textContent = 'Search index could not be loaded.';
+    }
+  }
+
+  input?.addEventListener('input', (e) => render((e.target as HTMLInputElement).value));
+
+  suggestionsBox?.querySelectorAll('button[data-suggestion]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tag = btn.getAttribute('data-suggestion') ?? '';
+      if (input) {
+        input.value = tag;
+        input.focus();
+      }
+      render(tag);
+    });
+  });
+
+  init();
+</script>

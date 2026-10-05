@@ -1,0 +1,166 @@
+---
+import { getEntry } from 'astro:content';
+import type { Article } from '../lib/utils';
+import { estimateReadingTime, formatDate, visualVariant, initials } from '../lib/utils';
+import Visual from './Visual.astro';
+
+interface Props {
+  article: Article;
+  index?: number;
+}
+
+const { article, index } = Astro.props;
+const { data } = article;
+const readingTime = data.readingTimeOverride ?? estimateReadingTime(article.body ?? '', data.language);
+const author = await getEntry('authors', data.author);
+const authorName = author?.data.name ?? data.author;
+---
+<div class="archive-row">
+  {typeof index === 'number' && <div class="archive-number">{String(index).padStart(2, '0')}</div>}
+  <a href={`/blog/${article.id}/`} class="article-card hover-lift" data-testid={`card-article-${article.id}`}>
+    <Visual
+      image={data.coverImage}
+      alt={data.coverImageAlt ?? ''}
+      label={data.category}
+      variant={visualVariant(data.category)}
+      class="card-visual"
+    />
+    <div class="card-copy">
+      <div class="card-topline">
+        <span class="eyebrow">{data.category}</span>
+        {data.featured && <span class="featured-dot" aria-label="Featured article"></span>}
+        {data.language === 'hi' && <span class="lang-pill">हिंदी</span>}
+      </div>
+      <h3 class={data.language === 'hi' ? 'lang-hi' : ''}>{data.title}</h3>
+      <p>{data.description}</p>
+      <div class="article-meta article-meta-compact">
+        <span>{formatDate(data.publishedDate, data.language)}</span>
+        <span>{readingTime} min read</span>
+      </div>
+      <div class="card-author">
+        <span class="author-avatar">{initials(authorName)}</span>
+        <span>{authorName}</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+      </div>
+    </div>
+  </a>
+</div>
+
+<style>
+  .archive-row {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    gap: 10px;
+  }
+
+  .archive-number {
+    color: hsl(var(--accent));
+    font: .7rem var(--font-mono);
+    padding-top: 16px;
+  }
+
+  .archive-row .article-card {
+    display: grid;
+    grid-template-columns: minmax(220px, .7fr) 1.3fr;
+    gap: 32px;
+    border-top: 1px solid hsl(var(--rule));
+    padding-top: 16px;
+    color: hsl(var(--foreground));
+    text-decoration: none;
+  }
+
+  .archive-row .article-card :global(.card-visual) {
+    aspect-ratio: 1.35;
+  }
+
+  .archive-row .card-copy {
+    padding-top: 0;
+  }
+
+  .card-topline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .featured-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: hsl(var(--accent));
+  }
+
+  .lang-pill {
+    font-family: var(--font-sans);
+    font-size: .62rem;
+    border: 1px solid hsl(var(--rule));
+    border-radius: 999px;
+    padding: .15em .6em;
+    color: hsl(var(--ink-faint));
+  }
+
+  .archive-row .card-copy h3 {
+    font: 500 clamp(1.7rem, 3vw, 2.6rem)/1.05 var(--font-serif);
+    letter-spacing: -.03em;
+    max-width: 620px;
+    margin: 10px 0 10px;
+  }
+
+  .archive-row .card-copy p {
+    color: hsl(var(--ink-soft));
+    font-size: .92rem;
+    line-height: 1.55;
+    max-width: 490px;
+    margin: 0 0 16px;
+    font-family: var(--font-sans);
+  }
+
+  .article-meta-compact {
+    padding-top: 12px;
+    border-top: 1px solid hsl(var(--rule));
+  }
+
+  .card-author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .7rem;
+    color: hsl(var(--ink-faint));
+    margin-top: 16px;
+    font-family: var(--font-sans);
+  }
+
+  .card-author svg {
+    margin-left: auto;
+    color: hsl(var(--primary));
+    transition: transform .2s ease;
+  }
+
+  .article-card:hover .card-author svg {
+    transform: translate(3px, -3px);
+  }
+
+  @media (max-width: 900px) {
+    .archive-row .article-card {
+      grid-template-columns: .7fr 1.3fr;
+      gap: 22px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .archive-row {
+      grid-template-columns: 31px 1fr;
+      gap: 0;
+    }
+    .archive-row .article-card {
+      display: block;
+    }
+    .archive-row .article-card :global(.card-visual) {
+      aspect-ratio: 1.5;
+      margin-bottom: 20px;
+    }
+    .archive-row .card-copy h3 {
+      font-size: 2.1rem;
+    }
+  }
+</style>

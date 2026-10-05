@@ -1,0 +1,111 @@
+---
+import { getEntry } from 'astro:content';
+import type { Article } from '../lib/utils';
+import { estimateReadingTime, formatDate, visualVariant, initials } from '../lib/utils';
+import Visual from './Visual.astro';
+
+interface Props {
+  article: Article;
+}
+
+const { article } = Astro.props;
+const { data } = article;
+const readingTime = data.readingTimeOverride ?? estimateReadingTime(article.body ?? '', data.language);
+const author = await getEntry('authors', data.author);
+const authorName = author?.data.name ?? data.author;
+---
+<a href={`/blog/${article.id}/`} class="article-card hover-lift" data-testid={`card-article-${article.id}`}>
+  <Visual
+    image={data.coverImage}
+    alt={data.coverImageAlt ?? ''}
+    label={data.category}
+    variant={visualVariant(data.category)}
+    class="card-visual"
+  />
+  <div class="card-copy">
+    <div class="card-topline">
+      <span class="eyebrow">{data.category}</span>
+      {data.featured && <span class="featured-dot" aria-label="Featured article"></span>}
+    </div>
+    <h3 class={data.language === 'hi' ? 'lang-hi' : ''}>{data.title}</h3>
+    <p>{data.description}</p>
+    <div class="article-meta article-meta-compact">
+      <span>{formatDate(data.publishedDate, data.language)}</span>
+      <span>{readingTime} min read</span>
+    </div>
+    <div class="card-author">
+      <span class="author-avatar">{initials(authorName)}</span>
+      <span>{authorName}</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+    </div>
+  </div>
+</a>
+
+<style>
+  .article-card {
+    color: hsl(var(--foreground));
+    text-decoration: none;
+    min-width: 0;
+    display: block;
+  }
+
+  .article-card :global(.card-visual) {
+    aspect-ratio: 1.35;
+  }
+
+  .card-copy {
+    padding: 19px 1px 0;
+  }
+
+  .card-topline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .featured-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: hsl(var(--accent));
+  }
+
+  .card-copy h3 {
+    font: 500 clamp(1.45rem, 2.4vw, 2.1rem)/1.06 var(--font-serif);
+    letter-spacing: -.035em;
+    margin: 12px 0 10px;
+  }
+
+  .card-copy p {
+    color: hsl(var(--ink-soft));
+    font-size: .88rem;
+    line-height: 1.55;
+    margin: 0 0 16px;
+    font-family: var(--font-sans);
+  }
+
+  .article-meta-compact {
+    padding-top: 12px;
+    border-top: 1px solid hsl(var(--rule));
+  }
+
+  .card-author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .7rem;
+    color: hsl(var(--ink-faint));
+    margin-top: 16px;
+    font-family: var(--font-sans);
+  }
+
+  .card-author svg {
+    margin-left: auto;
+    color: hsl(var(--primary));
+    transition: transform .2s ease;
+  }
+
+  .article-card:hover .card-author svg {
+    transform: translate(3px, -3px);
+  }
+</style>

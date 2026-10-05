@@ -1,0 +1,39 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AuthorMini from '../../components/AuthorMini.astro';
+import { articlesByAuthor } from '../../lib/utils';
+
+const authors = (await getCollection('authors')).filter((a) => a.data.active);
+const allArticles = await getCollection('articles');
+
+const authorsWithCounts = authors
+  .map((author) => ({ author, count: articlesByAuthor(allArticles, author.id).length }))
+  .sort((a, b) => b.count - a.count);
+---
+<BaseLayout title="Writers" description="Everyone who writes for Chintya.">
+  <section class="container-wide listing-head">
+    <span class="eyebrow">Writers</span>
+    <h1 class="display-title">Who writes<br /><em>here.</em></h1>
+    <p>Chintya publishes more than one voice on purpose. As it grows, this is where every contributor lives.</p>
+  </section>
+
+  <section class="container-wide author-grid-section">
+    <div class="author-row">
+      {authorsWithCounts.map(({ author }) => <AuthorMini author={author} />)}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .listing-head { padding-top: clamp(70px, 10vw, 130px); padding-bottom: 60px; }
+  .listing-head h1 { font-size: clamp(3rem, 7vw, 5.6rem); margin: 20px 0 20px; }
+  .listing-head > p { max-width: 550px; color: hsl(var(--ink-soft)); line-height: 1.65; margin: 0; font-size: 1rem; font-family: var(--font-sans); }
+  .author-grid-section { padding-bottom: 120px; }
+  .author-row { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid hsl(var(--rule)); }
+  @media (max-width: 767px) {
+    .listing-head { padding-top: 55px; padding-bottom: 45px; }
+    .listing-head h1 { font-size: clamp(2.8rem, 15vw, 4.2rem); }
+    .author-row { grid-template-columns: 1fr; }
+  }
+</style>

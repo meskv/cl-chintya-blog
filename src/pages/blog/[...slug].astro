@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { sortArticles } from '../../lib/utils';
+
+export async function getStaticPaths() {
+  const all = await getCollection('articles');
+  const published = sortArticles(all.filter((a) => !a.data.draft));
+
+  return published.map((article, index) => ({
+    params: { slug: article.id },
+    props: {
+      article,
+      prevArticle: published[index + 1] ?? null,
+      nextArticle: published[index - 1] ?? null,
+    },
+  }));
+}
+
+const { article, prevArticle, nextArticle } = Astro.props;
+---
+<ArticleLayout article={article} prevArticle={prevArticle} nextArticle={nextArticle} />

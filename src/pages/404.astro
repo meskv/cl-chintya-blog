@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Page not found" noIndex={true}>
+  <section class="not-found container-wide">
+    <span class="eyebrow">404 / A wrong turn</span>
+    <h1 class="display-title">This page went<br /><em>somewhere else.</em></h1>
+    <p>The archive is large, but not infinite. Let's return to the beginning.</p>
+    <a href="/" class="text-link">
+      Back to CHINTYA
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+    </a>
+    <span class="not-found__sep"> · </span>
+    <a href="/blog" class="text-link">Browse the journal</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    min-height: 500px;
+    padding-top: clamp(80px, 14vw, 160px);
+  }
+  .not-found h1 { font-size: clamp(3.2rem, 9vw, 7rem); margin: 20px 0 26px; }
+  .not-found p { color: hsl(var(--ink-soft)); margin-bottom: 26px; font-family: var(--font-sans); }
+  .not-found__sep { color: hsl(var(--ink-faint)); margin: 0 4px; }
+</style>

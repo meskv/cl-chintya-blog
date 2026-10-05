@@ -1,0 +1,60 @@
+name: Deploy Chintya (v2) to GitHub Pages
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync content from Notion
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_ARTICLES_DB_ID: ${{ secrets.NOTION_ARTICLES_DB_ID }}
+          NOTION_AUTHORS_DB_ID: ${{ secrets.NOTION_AUTHORS_DB_ID }}
+        run: npm run sync:notion
+
+      - name: Build site
+        run: npm run build
+
+      - name: Deploy to GitHub Pages
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Try to checkout existing gh-pages, or create new one
+          git fetch origin gh-pages:gh-pages 2>/dev/null || git checkout --orphan gh-pages
+          git checkout gh-pages
+          
+          # Clear everything
+          find . -maxdepth 1 -not -name '.git' -not -name '.gitignore' -exec rm -rf {} + 2>/dev/null || true
+          
+          # Deploy new files to root
+          cp -r dist/* ./
+          rm -rf dist
+          
+          # Stage and commit
+          git add .
+          git commit -m "Deploy v2: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" --allow-empty
+          git push origin gh-pages
+
+

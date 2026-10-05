@@ -1,0 +1,71 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { initials } from '../lib/utils';
+
+interface Props {
+  author: CollectionEntry<'authors'>;
+}
+
+const { author } = Astro.props;
+const ACCENTS = ['211 45% 46%', '13 68% 55%', '169 52% 33%', '38 60% 45%'];
+let hash = 0;
+for (const ch of author.id) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+const accent = ACCENTS[hash % ACCENTS.length];
+---
+<a href={`/author/${author.id}/`} class="author-mini hover-lift">
+  <span class="author-avatar large" style={`background-color: hsl(${accent} / .22); color: hsl(${accent});`}>{initials(author.data.name)}</span>
+  <span>
+    <strong>{author.data.name}</strong>
+    <small>{author.data.bio}</small>
+  </span>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M7 7h10v10"/></svg>
+</a>
+
+<style>
+  .author-mini {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: hsl(var(--foreground));
+    text-decoration: none;
+    padding: 20px 18px 20px 0;
+    border-bottom: 1px solid hsl(var(--rule));
+  }
+
+  .author-mini + .author-mini {
+    padding-left: 18px;
+    border-left: 1px solid hsl(var(--rule));
+  }
+
+  .author-mini strong, .author-mini small {
+    display: block;
+  }
+
+  .author-mini strong {
+    font: 500 1.12rem var(--font-serif);
+  }
+
+  .author-mini small {
+    color: hsl(var(--ink-faint));
+    font-size: .67rem;
+    margin-top: 3px;
+    font-family: var(--font-sans);
+    max-width: 22ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .author-mini svg {
+    margin-left: auto;
+    color: hsl(var(--primary));
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 767px) {
+    .author-mini + .author-mini {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+</style>
